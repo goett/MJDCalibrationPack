@@ -1,0 +1,65 @@
+function main() {
+	
+	//find all of our ORCA objects
+	rc = find(ORRunModel,1);
+	dm = find(ORHistoModel,1);
+	vxm = find(ORVXMModel,1);
+ 
+	
+	//make sure no run is on
+	if ([rc isRunning]) {
+	[rc stopRun];
+	waituntil(![rc isRunning]);
+	}
+	
+	//initialize motor settings (source is garaged)
+	vxm_motor0 = [vxm motor:0]; //garage motor
+	vxm_motor1 = [vxm motor:2]; //driver motor
+	[vxm_motor0 setMotorSpeed: 400];
+	[vxm_motor1 setMotorSpeed: 400];
+	[vxm setDisplayRaw:(true)];
+	[vxm addZeroCmd]; //assume the motors at the new home location
+	
+	positionD=0;
+	positionG=0;
+	iter = 0;
+	
+	do{
+		//deploy source
+		do{
+			[vxm move: 0 dx: 50];
+			waituntil(![vxm isMoving]);
+			[vxm shipMotorState:0];
+			[vxm move: 2 dx: -400];
+			iter = iter + 1;
+			waituntil(![vxm isMoving]);
+			[vxm shipMotorState:2];
+		
+			Driveposition=[[vxm motor:2] motorPosition];
+			if(iter%10 ==0){
+				print Driveposition;
+			}
+		}while(1);
+	
+	
+		//Garage source
+		do{
+			[vxm move: 2 dx: 400];
+			waituntil(![vxm isMoving]);
+			[vxm shipMotorState:0];
+			[vxm move: 0 dx: -50];
+			iter = iter + 1;
+			waituntil(![vxm isMoving]);
+			[vxm shipMotorState:2];
+		
+			Driveposition=[[vxm motor:2] motorPosition];
+			if(iter%10 ==0){
+				print Driveposition;
+			}
+		}while(1);
+		
+	}while(1);
+	
+ 
+
+}

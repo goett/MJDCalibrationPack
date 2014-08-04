@@ -1,0 +1,62 @@
+//#Name:VXMStress
+function main() {
+// This script will locate the vxm, arduino and camera
+// Deploy source, taking a photo after each cycle,
+// When the magnet position is such that the custom state goes to 1,
+// the source is determined to be fully deployed.
+// Then retrieve source, taking a photo after each cycle
+// When the magnet position is such that the custom state goes to 2,
+// the source is determined to be fully garaged. The script then exits.
+	
+	//find all of our ORCA objects
+	arduino = find(ORArduinoUNOModel,1);
+	rc = find(ORRunModel,1);
+	dm = find(ORHistoModel,1);
+	vxm = find(ORVXMModel,1);
+	cam = find(ORCameraModel,1);
+	
+	//camera setup
+	[cam setSaveFileInterval: 1000];
+	folder = @"/Users/majorana/scratch_photo/";
+	[cam setHistoryFolder: folder];
+	[cam startSession];
+	
+	//make sure no run is on
+	if ([rc isRunning]) {
+	[rc stopRun];
+	waituntil(![rc isRunning]);
+	}
+	
+	//initialize motor settings (source is garaged)
+	//Here we have to send a custom command informing the VXM what type of motors it is using
+	//[vxm addCustomCmd:@"setMA1M5,setMA3M4,"];
+	vxm_motor0 = [vxm motor:0]; //garage motor
+	vxm_motor1 = [vxm motor:2]; //driver motor
+	[vxm_motor0 setMotorSpeed: 400];
+	[vxm_motor1 setMotorSpeed: 400];
+	[vxm setDisplayRaw:(true)];
+	[vxm addZeroCmd]; //assume the motors at the new home location
+	[cam addFrameNow]; //take photo;
+	
+	positionD=0;
+	positionG=0;
+	iter = 0;
+	//deploy source
+	do{
+		theCommand = "PM-1,C,SA1M400,SA3M400,SA1M400,SA3M400,LM0,I1M50,P5,I3M-400,P5,L0,R,";
+		vxm = find(ORVXM,1);
+		[vxm setUseCmdQueue:0]; //execute immediately
+		[vxm setCustomCmd:theCommand];  //sets the command. It will show in the dialog. Does not send it.
+		[vxm addCustomCmd];
+		//As soon as the source reaches target position, stop.
+		if([arduino customValue:1] == 1){
+			[vxm stopAllMotion];
+			print "source is fully deployed at" , position;
+			break;
+		}
+		[cam addFrameNow];
+	}while(arduino);
+	
+	[cam stopSession];
+	
+}
