@@ -60,7 +60,7 @@ void DoMeasurement()
   int raw4 = analogRead(4);   // Range : 0..1024
 
   //  Uncomment this to get a raw reading for calibration of no-field point
-  if( abs(raw0-last0)>6 || abs(raw2-last2)>6 || abs(raw4-last4)>6)
+  if( abs(raw0-last0)>50 || abs(raw2-last2)>50 || abs(raw4-last4)>50)
   {
     Serial.print("Raw reading 0: ");
     Serial.println(raw0);
@@ -117,7 +117,7 @@ void DoMeasurement()
     Serial << "21" << "," << "1" << "," << currPos << "\n\r";
     Serial << "21" << "," << "0" << "," << "0" << "\n\r";
     */
-    Serial << "Position Changed" << "\n\r";
+    Serial.println("Position Changed");
   }
   lastPos=currPos;
  
