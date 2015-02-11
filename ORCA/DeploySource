@@ -1,0 +1,85 @@
+//#Name:OrcaScript
+//#Name:VXMStress
+
+function main() {
+
+// This script will locate the vxm and arduino.
+
+// Deploy source:
+
+// When the magnet position is such that the custom state goes to 3,
+
+// the source is determined to be fully deployed.
+	
+
+	//find all of our ORCA objects
+
+	arduino = find(ORArduinoUNOModel,1);
+
+	vxm = find(ORVXMModel,1);
+
+	
+
+	//make sure no run is on
+
+	if ([rc isRunning]) {
+
+	[rc stopRun];
+
+	waituntil(![rc isRunning]);
+
+	}
+
+	
+
+	//initialize motor settings (source is garaged)
+
+	vxm_motor0 = [vxm motor:0]; //garage motor
+
+	[vxm_motor0 setMotorSpeed: 400];
+
+	[vxm setDisplayRaw:(true)];
+
+	[vxm addZeroCmd]; //assume the motors at the new home location
+
+	
+
+	positionD=0;
+
+	positionG=0;
+
+	iter = 0;
+
+	//deploy source
+
+	do{
+
+		theCommand = "PM-1,C,SA1M400,LM0,I1M-45000,L0,R,";
+
+		[vxm setUseCmdQueue:0]; //execute immediately
+
+		[vxm setCustomCmd:theCommand];  //sets the command. It will show in the dialog. Does not send it.
+
+		[vxm addCustomCmd];
+
+		//As soon as the source reaches target position, stop.
+
+		if([arduino customValue:1] == 3){
+
+			[vxm stopAllMotion];
+
+			print "source is fully deployed at" , position;
+
+			break;
+
+		}
+
+	}while(arduino);
+
+}
+
+	
+
+	
+
+}
